@@ -174,9 +174,57 @@
                 mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
             }
         }
+
+        /* Custom Futuristic Cursor */
+        @media (pointer: fine) {
+            body, a, button, input, textarea, select {
+                cursor: none !important;
+            }
+            #cursor-dot, #cursor-outline {
+                display: block;
+            }
+        }
+        @media (pointer: coarse) {
+            #cursor-dot, #cursor-outline {
+                display: none !important;
+            }
+        }
+        #cursor-dot {
+            position: fixed; top: 0; left: 0;
+            width: 6px; height: 6px;
+            background-color: #34d399;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transition: opacity 0.2s ease-in-out;
+            will-change: transform;
+        }
+        #cursor-outline {
+            position: fixed; top: 0; left: 0;
+            width: 32px; height: 32px;
+            border: 1px solid rgba(52, 211, 153, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.2s, transform 0.15s ease-out;
+            will-change: transform;
+        }
+        /* Hover Interaction State */
+        .cursor-hover #cursor-outline {
+            width: 50px; height: 50px;
+            background-color: rgba(52, 211, 153, 0.1);
+            border-color: rgba(52, 211, 153, 0.9);
+        }
+        .cursor-hover #cursor-dot {
+            opacity: 0;
+        }
     </style>
 </head>
-<body class="antialiased flex flex-col relative selection:bg-emerald-500/30 selection:text-emerald-200">
+<body class="antialiased flex flex-col relative selection:bg-emerald-500/30 selection:text-emerald-200 overflow-x-hidden bg-[#030303]">
+
+    <!-- Custom Cursor Elements -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-outline"></div>
 
     <!-- Ambient Backgrounds -->
     <div class="ambient-bg"></div>
@@ -206,12 +254,12 @@
         <div class="max-w-7xl w-full mx-auto h-full flex flex-col justify-center relative">
             
             <!-- Hero Container -->
-            <div class="glass-panel rounded-[2rem] overflow-hidden relative animate-fade-in w-full min-h-[75vh] shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-[#0a0a0c] flex flex-col lg:flex-row">
+            <div class="glass-panel rounded-[2rem] overflow-hidden relative animate-fade-in w-full min-h-[75vh] shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-[#0a0a0c] flex flex-col lg:flex-row group/container">
                 
                 <!-- Shared Background Video Layer (Smoothed via CSS Mask) -->
-                <div class="absolute top-0 right-0 w-full lg:w-[70%] h-[50vh] lg:h-full z-0 video-fade-mask bg-black group/video pointer-events-auto">
+                <div class="absolute top-0 right-0 w-full lg:w-[70%] h-[50vh] lg:h-full z-0 video-fade-mask bg-black group/video pointer-events-auto overflow-hidden">
                     
-                    <!-- Post-Video / Fallback Image (Original Asset) -->
+                    <!-- Post-Video / Fallback Image -->
                     <img 
                         id="post-video-img"
                         src="CartoonImage.png"
@@ -219,18 +267,22 @@
                         class="absolute inset-0 w-full h-full object-cover z-20 opacity-0 pointer-events-none transition-opacity duration-700"
                     />
 
-                    <!-- The Video Element (Original Asset) -->
+                    <!-- PEAK UX VIDEO ELEMENT -->
                     <video 
                         id="welcome-video"
-                        class="absolute inset-0 w-full h-full object-cover z-10 scale-[1.02] transform group-hover/video:scale-[1.05] transition-transform duration-1000"
+                        class="absolute inset-0 w-full h-full object-cover z-10 scale-[1.02] transform group-hover/container:scale-[1.06] transition-transform duration-[2s] ease-out"
                         playsinline
+                        preload="auto"
+                        autoplay
                         poster="CartoonImage.png"
                     >
-                        <source src="Introduction Video.mp4" type="video/mp4">
-                        Your browser does not support the video tag.
+                        <source src="Introduction%20Video.mp4" type="video/mp4">
                     </video>
                     
-                    <!-- Fallback Overlay: Shown if browser blocks unmuted autoplay -->
+                    <!-- Scanline Overlay for cinematic feel -->
+                    <div class="absolute inset-0 z-15 pointer-events-none opacity-20 bg-[linear-gradient(rgba(255,255,255,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%]"></div>
+                    
+                    <!-- Fallback Overlay: Shown if browser blocks playback entirely -->
                     <div id="play-overlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm z-30 opacity-0 pointer-events-none transition-opacity duration-500 flex flex-col items-center justify-center">
                         <button id="start-btn" class="btn-glow p-5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-md transition-all transform hover:scale-110 flex items-center justify-center group shadow-xl">
                             <i data-lucide="play" class="w-8 h-8 ml-1 text-white group-hover:text-gray-100 fill-white/20"></i>
@@ -242,7 +294,8 @@
 
                     <!-- Mute/Unmute Control -->
                     <button id="mute-toggle-btn" class="absolute bottom-4 right-4 lg:bottom-8 lg:right-8 p-3 rounded-full bg-black/70 backdrop-blur-lg border border-white/20 text-white hover:bg-white/20 hover:scale-110 transition-all duration-300 z-30 flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.8)] opacity-0 pointer-events-none group">
-                         <i data-lucide="volume-2" id="mute-icon" class="w-4 h-4"></i>
+                         <i data-lucide="volume-2" id="icon-unmuted" class="w-4 h-4 group-hover:text-emerald-400 transition-colors"></i>
+                         <i data-lucide="volume-x" id="icon-muted" class="w-4 h-4 group-hover:text-emerald-400 transition-colors hidden"></i>
                     </button>
                     
                 </div>
@@ -274,7 +327,7 @@
                         <!-- Description with Typing Effect -->
                         <div class="text-base sm:text-lg text-gray-400 leading-relaxed font-light max-w-lg min-h-[80px]">
                             I'm <span class="text-gray-200 font-medium">Sagar Gowda</span>, building highly resilient digital ecosystems. I specialize as a <br/>
-                            <span class="text-emerald-400 font-medium" id="typewriter"></span><span class="cursor-blink text-emerald-400">|</span>
+                            <span class="text-emerald-400 font-medium drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]" id="typewriter"></span><span class="cursor-blink text-emerald-400">|</span>
                         </div>
                         
                         <!-- Action & Connect Buttons -->
@@ -386,7 +439,7 @@
         </div>
     </section>
 
-    <!-- Services Section (New for more data) -->
+    <!-- Services Section -->
     <section id="services" class="py-20 px-4 sm:px-6 lg:px-8 relative z-10 bg-black/30 border-y border-white/5">
         <div class="max-w-7xl mx-auto reveal">
             <div class="text-center mb-12 flex flex-col items-center">
@@ -451,7 +504,7 @@
                 </p>
             </div>
 
-            <!-- 2x2 Grid for Projects (Replaced Images with Premium Symbols) -->
+            <!-- 2x2 Grid for Projects -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                 
                 <!-- Project 1 -->
@@ -484,7 +537,6 @@
                 <!-- Project 2 -->
                 <a href="#" class="group block h-full">
                     <div class="glass-panel hover-card rounded-2xl overflow-hidden h-full flex flex-col bg-[#0a0a0c]/80">
-                        <!-- Symbol Cover -->
                         <div class="h-48 relative border-b border-white/5 bg-gradient-to-br from-blue-900/30 via-black to-black flex items-center justify-center overflow-hidden">
                             <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
                             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full group-hover:bg-blue-500/40 transition-colors duration-700"></div>
@@ -511,7 +563,6 @@
                 <!-- Project 3 -->
                 <a href="#" class="group block h-full">
                     <div class="glass-panel hover-card rounded-2xl overflow-hidden h-full flex flex-col bg-[#0a0a0c]/80">
-                        <!-- Symbol Cover -->
                         <div class="h-48 relative border-b border-white/5 bg-gradient-to-br from-indigo-900/30 via-black to-black flex items-center justify-center overflow-hidden">
                             <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
                             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-indigo-500/20 blur-3xl rounded-full group-hover:bg-indigo-500/40 transition-colors duration-700"></div>
@@ -538,7 +589,6 @@
                 <!-- Project 4 -->
                 <a href="#" class="group block h-full">
                     <div class="glass-panel hover-card rounded-2xl overflow-hidden h-full flex flex-col bg-[#0a0a0c]/80">
-                        <!-- Symbol Cover -->
                         <div class="h-48 relative border-b border-white/5 bg-gradient-to-br from-rose-900/30 via-black to-black flex items-center justify-center overflow-hidden">
                             <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
                             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-rose-500/20 blur-3xl rounded-full group-hover:bg-rose-500/40 transition-colors duration-700"></div>
@@ -823,7 +873,7 @@
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('active');
-                        observer.unobserve(entry.target); // Optional: Stop observing once revealed
+                        observer.unobserve(entry.target);
                     }
                 });
             }, {
@@ -835,72 +885,79 @@
             revealElements.forEach(el => revealObserver.observe(el));
 
 
-            // 4. Video Logic (Preserved from original)
+            // 4. Video Logic (Optimized for instant load & requested unmuted status)
             const video = document.getElementById('welcome-video');
             const playOverlay = document.getElementById('play-overlay');
             const startBtn = document.getElementById('start-btn');
             const muteToggleBtn = document.getElementById('mute-toggle-btn');
-            const muteIcon = document.getElementById('mute-icon');
+            const iconUnmuted = document.getElementById('icon-unmuted');
+            const iconMuted = document.getElementById('icon-muted');
             const postVideoImg = document.getElementById('post-video-img');
             
-            // Error handling if video is missing
             if(video) {
+                // Handle missing files gracefully
                 video.addEventListener('error', function() {
-                    console.warn("Video file 'Introduction Video.mp4' not found. Displaying poster image.");
-                    if(playOverlay) {
-                        playOverlay.classList.add('opacity-0', 'pointer-events-none');
-                    }
+                    console.warn("Video file not found or failed to load. Displaying poster image.");
+                    if(playOverlay) playOverlay.classList.add('opacity-0', 'pointer-events-none');
                     video.style.opacity = '0';
                     if(postVideoImg) postVideoImg.classList.remove('opacity-0');
                 });
 
-                // ATTEMPT UNMUTED AUTOPLAY
-                video.muted = false; 
-                
-                const playPromise = video.play();
+                // Request Unmuted Playback
+                video.muted = false;
+                let playPromise = video.play();
 
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
-                        // Success: Browser allowed unmuted playback
-                        if(muteToggleBtn) muteToggleBtn.classList.remove('opacity-0', 'pointer-events-none');
+                        // Success: Browser allowed unmuted autoplay!
+                        if(muteToggleBtn) {
+                            muteToggleBtn.classList.remove('opacity-0', 'pointer-events-none');
+                            if(iconUnmuted) iconUnmuted.classList.remove('hidden');
+                            if(iconMuted) iconMuted.classList.add('hidden');
+                        }
                     }).catch(error => {
-                        // Failure: Browser blocked unmuted playback (expected in modern browsers)
+                        // Failure: Browser blocked unmuted autoplay. Prompt user to click play.
+                        console.warn("Browser blocked unmuted autoplay. Displaying play button.");
                         if(playOverlay) playOverlay.classList.remove('opacity-0', 'pointer-events-none');
                         video.pause(); 
                     });
                 }
 
-                // USER INTERACTION: Fallback overlay clicked
+                // Fallback Play Button logic
                 if (startBtn) {
                     startBtn.addEventListener('click', () => {
                         if(postVideoImg) postVideoImg.classList.add('opacity-0');
 
                         video.currentTime = 0;
-                        video.muted = false;
+                        video.muted = false; // Play with sound
                         video.play();
                         
                         if(playOverlay) playOverlay.classList.add('opacity-0', 'pointer-events-none');
-                        if(muteToggleBtn) muteToggleBtn.classList.remove('opacity-0', 'pointer-events-none');
-                        
-                        if(muteIcon) muteIcon.setAttribute('data-lucide', 'volume-2');
-                        lucide.createIcons();
+                        if(muteToggleBtn) {
+                            muteToggleBtn.classList.remove('opacity-0', 'pointer-events-none');
+                            if(iconUnmuted) iconUnmuted.classList.remove('hidden');
+                            if(iconMuted) iconMuted.classList.add('hidden');
+                        }
                     });
                 }
 
-                // MUTE TOGGLE LOGIC
+                // Accurate Mute/Unmute Toggle
                 if (muteToggleBtn) {
                     muteToggleBtn.addEventListener('click', () => {
                         video.muted = !video.muted;
+                        
+                        // Toggle SVG visibility classes cleanly
                         if (video.muted) {
-                            if(muteIcon) muteIcon.setAttribute('data-lucide', 'volume-x');
+                            if(iconUnmuted) iconUnmuted.classList.add('hidden');
+                            if(iconMuted) iconMuted.classList.remove('hidden');
                         } else {
-                            if(muteIcon) muteIcon.setAttribute('data-lucide', 'volume-2');
+                            if(iconUnmuted) iconUnmuted.classList.remove('hidden');
+                            if(iconMuted) iconMuted.classList.add('hidden');
                         }
-                        lucide.createIcons();
                     });
                 }
 
-                // END OF VIDEO BEHAVIOR
+                // Handle Video End
                 video.addEventListener('ended', () => {
                     if(postVideoImg) postVideoImg.classList.remove('opacity-0');
                     if(playOverlay) {
@@ -909,6 +966,31 @@
                         if(overlayText) overlayText.innerText = "Replay Intro";
                     }
                     if(muteToggleBtn) muteToggleBtn.classList.add('opacity-0', 'pointer-events-none');
+                });
+            }
+
+            // 5. Custom Cursor Logic (Performance Optimized)
+            const cursorDot = document.getElementById('cursor-dot');
+            const cursorOutline = document.getElementById('cursor-outline');
+
+            if (window.matchMedia("(pointer: fine)").matches && cursorDot && cursorOutline) {
+                window.addEventListener('mousemove', (e) => {
+                    // Instantly follow for the dot
+                    cursorDot.style.transform = `translate(calc(${e.clientX}px - 50%), calc(${e.clientY}px - 50%))`;
+                    
+                    // Hardware-accelerated CSS transition for the outline (fixes memory leak/stutter)
+                    cursorOutline.style.transform = `translate(calc(${e.clientX}px - 50%), calc(${e.clientY}px - 50%))`;
+                });
+
+                // Event delegation for interactables (fixes Lucide icon replacement bug)
+                document.body.addEventListener('mouseover', (e) => {
+                    const interactable = e.target.closest('a, button, input, .hover-card, .group, svg');
+                    if (interactable) document.body.classList.add('cursor-hover');
+                });
+                
+                document.body.addEventListener('mouseout', (e) => {
+                    const interactable = e.target.closest('a, button, input, .hover-card, .group, svg');
+                    if (interactable) document.body.classList.remove('cursor-hover');
                 });
             }
         });
